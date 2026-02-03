@@ -1,0 +1,23 @@
+# DejaVu Root Dependencies
+
+# This file contains common dependencies used across multiple components
+# For component-specific dependencies, see:
+# - device/requirements.txt
+# - backend/requirements.txt
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+
+# Code quality
+black>=23.0.0
+flake8>=6.1.0
+mypy>=1.7.0
+
+# Documentation
+mkdocs>=1.5.0
+mkdocs-material>=9.4.0

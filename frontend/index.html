@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DejaVu - Visual Memory Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            color: #ecf0f1;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .search-bar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .card-content {
+            padding: 1rem;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .status {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #27ae60;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+        
+        .empty-state h2 {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🧠 DejaVu</h1>
+        <p class="subtitle">Visual Memory Dashboard</p>
+    </header>
+    
+    <div class="container">
+        <div class="status">
+            <span class="status-indicator"></span>
+            <span id="status-text">Connected to backend</span>
+        </div>
+        
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Search images by tags, date, or content...">
+        </div>
+        
+        <div class="gallery" id="gallery">
+            <div class="empty-state">
+                <h2>No Images Yet</h2>
+                <p>Start capturing images with your DejaVu device to see them here.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000';
+        
+        // Check backend connection
+        async function checkBackend() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                if (response.ok) {
+                    document.getElementById('status-text').textContent = 'Connected to backend';
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                document.getElementById('status-text').textContent = 'Backend offline - using demo mode';
+                document.querySelector('.status-indicator').style.background = '#e74c3c';
+            }
+        }
+        
+        // Load images from backend
+        async function loadImages() {
+            try {
+                const response = await fetch(`${API_URL}/api/images`);
+                const images = await response.json();
+                
+                if (images.length === 0) {
+                    return;
+                }
+                
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = images.map(img => `
+                    <div class="image-card">
+                        <div class="image-placeholder">📷</div>
+                        <div class="card-content">
+                            <div class="card-title">${img.filename}</div>
+                            <div class="card-meta">
+                                ${new Date(img.timestamp).toLocaleString()}<br>
+                                Device: ${img.device_id || 'Unknown'}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load images:', error);
+            }
+        }
+        
+        // Search functionality
+        document.getElementById('search').addEventListener('input', async (e) => {
+            const query = e.target.value;
+            if (query.length < 2) {
+                loadImages();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                // Update gallery with search results
+                console.log('Search results:', data);
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        });
+        
+        // Initialize
+        checkBackend();
+        loadImages();
+        
+        // Refresh every 30 seconds
+        setInterval(loadImages, 30000);
+    </script>
+</body>
+</html>
