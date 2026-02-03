@@ -5,6 +5,14 @@ A simple HTTP server that allows users to connect to the device via IP address
 and configure WiFi credentials. This is useful for initial device setup when
 the device doesn't have WiFi credentials configured yet.
 
+SECURITY NOTES:
+- This server is intended for LOCAL NETWORK use during initial device setup
+- Binding to 0.0.0.0 allows access from any device on the same network
+- No authentication is required to simplify initial setup
+- File permissions are set to 0o600 to protect stored credentials
+- Use this server only on trusted networks
+- Consider disabling the server after initial WiFi configuration
+
 Usage:
     python wifi_setup_server.py
 
@@ -26,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'wifi-setup-secret-key-change-me'
+# Use environment variable or generate a random secret key
+app.config['SECRET_KEY'] = os.getenv('WIFI_SETUP_SECRET_KEY', os.urandom(24).hex())
 
 # Configuration file path
 CONFIG_FILE = Path(__file__).parent / 'wifi_credentials.json'
@@ -263,6 +272,8 @@ def save_wifi_credentials(credentials):
     try:
         with open(CONFIG_FILE, 'w') as f:
             json.dump(credentials, f, indent=2)
+        # Set restrictive file permissions (owner read/write only)
+        os.chmod(CONFIG_FILE, 0o600)
         logger.info(f"WiFi credentials saved to {CONFIG_FILE}")
         return True
     except Exception as e:
@@ -327,7 +338,7 @@ def setup_wifi():
             
     except Exception as e:
         logger.error(f"Error in setup_wifi: {e}", exc_info=True)
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'An error occurred while saving WiFi credentials'}), 500
 
 
 @app.route('/credentials', methods=['GET'])
@@ -349,6 +360,7 @@ def main():
     """Main entry point for the WiFi setup server"""
     logger.info("Starting DejaVu WiFi Setup Server")
     logger.info(f"Configuration file: {CONFIG_FILE}")
+    logger.info("SECURITY: This server is for local network use during device setup")
     
     # Get host and port from environment or use defaults
     host = os.getenv('WIFI_SETUP_HOST', '0.0.0.0')
@@ -356,8 +368,9 @@ def main():
     
     logger.info(f"Server will be accessible at http://{host}:{port}")
     logger.info("Access the setup page from any device on the same network")
+    logger.warning("WARNING: No authentication required - use only on trusted networks")
     
-    # Run the Flask app
+    # Run the Flask app (development server - suitable for device setup use case)
     app.run(host=host, port=port, debug=False)
 
 
