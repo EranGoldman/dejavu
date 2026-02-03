@@ -1,5 +1,8 @@
 # DejaVu Device Dependencies
 
+# Web server for WiFi setup
+Flask>=3.0.0
+
 # Image processing
 Pillow>=10.0.0
 
