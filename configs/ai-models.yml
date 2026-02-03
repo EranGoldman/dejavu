@@ -1,0 +1,10 @@
+models:
+  image_classification:
+    name: "clip-vit-base-patch32"
+    enabled: true
+    confidence_threshold: 0.7
+    
+  object_detection:
+    name: "yolov8n"
+    enabled: true
+    confidence_threshold: 0.5

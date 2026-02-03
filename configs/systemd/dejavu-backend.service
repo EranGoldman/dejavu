@@ -1,0 +1,25 @@
+[Unit]
+Description=DejaVu Backend API Service
+After=network.target
+
+[Service]
+Type=simple
+User=dejavu
+Group=dejavu
+WorkingDirectory=/opt/dejavu/backend
+Environment="PATH=/opt/dejavu/venv/bin"
+ExecStart=/opt/dejavu/venv/bin/python app.py
+Restart=always
+RestartSec=10
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dejavu-backend
+
+[Install]
+WantedBy=multi-user.target
