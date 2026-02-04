@@ -34,13 +34,36 @@ python main.py
 
 Refer to the ESP32 specific documentation in `docs/esp32-setup.md`.
 
+## WiFi Setup
+
+For initial device setup or to configure WiFi credentials, use the WiFi setup server:
+
+```bash
+python wifi_setup_server.py
+```
+
+The server will start on port 8080 (default). Access it from any device on the same network:
+```
+http://<device-ip>:8080
+```
+
+### WiFi Setup Features:
+- Simple web interface for configuring WiFi credentials
+- Supports multiple WiFi networks
+- Credentials are stored in `wifi_credentials.json`
+- Can be accessed from any device with a web browser
+
+### Environment Variables:
+- `WIFI_SETUP_HOST` - Host to bind to (default: 0.0.0.0)
+- `WIFI_SETUP_PORT` - Port to listen on (default: 8080)
+
 ## Configuration
 
 Edit `config.py` to customize:
 - Camera settings (resolution, quality)
 - Upload intervals
 - Backend API endpoint
-- Wi-Fi credentials (stored in .env)
+- Wi-Fi credentials (stored in .env or via WiFi setup server)
 
 ## File Structure
 

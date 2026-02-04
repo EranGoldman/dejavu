@@ -144,6 +144,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# WiFi credentials (device)
+wifi_credentials.json
+
 # Spyder project settings
 .spyderproject
 .spyproject
